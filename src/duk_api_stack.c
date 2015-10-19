@@ -4387,6 +4387,7 @@ DUK_EXTERNAL duk_bool_t duk_instanceof(duk_context *ctx, duk_idx_t index1, duk_i
 DUK_INTERNAL void duk_push_lightfunc_name(duk_context *ctx, duk_tval *tv) {
 	duk_c_function func;
 
+	DUK_ASSERT_CTX_VALID(ctx);
 	DUK_ASSERT(DUK_TVAL_IS_LIGHTFUNC(tv));
 
 	/* Lightfunc name, includes Duktape/C native function pointer, which
@@ -4409,6 +4410,7 @@ DUK_INTERNAL void duk_push_lightfunc_name(duk_context *ctx, duk_tval *tv) {
 }
 
 DUK_INTERNAL void duk_push_lightfunc_tostring(duk_context *ctx, duk_tval *tv) {
+	DUK_ASSERT_CTX_VALID(ctx);
 	DUK_ASSERT(DUK_TVAL_IS_LIGHTFUNC(tv));
 
 	duk_push_string(ctx, "function ");
@@ -4449,6 +4451,75 @@ DUK_INTERNAL void duk_push_string_funcptr(duk_context *ctx, duk_uint8_t *ptr, du
 	}
 
 	duk_push_lstring(ctx, (const char *) buf, sz * 2);
+}
+
+/*
+ *  Multi-get
+ */
+
+DUK_EXTERNAL void duk_get_prop_multi(duk_context *ctx, duk_idx_t index, const char *fmt, ...) {
+	duk_hthread *thr;
+	va_list ap;
+	const char *p;
+	const char *p_start_key;
+	const char *p_end_key;
+
+	DUK_ASSERT_CTX_VALID(ctx);
+	thr = (duk_hthread *) ctx;
+	if (!fmt) {
+		goto type_error;
+	}
+	index = duk_require_normalize_index(ctx, index);
+
+	va_start(ap, fmt);
+	p = fmt;
+	for (;;) {
+		char c;
+
+		if (*p == 0) {
+			break;
+		}
+
+		/* scan key and colon */
+		p_start_key = p;
+		for (;;) {
+			c = *p++;
+			if (c == DUK_ASC_COLON) {
+				p_end_key = p - 1;
+				break;
+			} else if (c == 0) {
+				goto type_error;
+			} else {
+				;
+			}
+		}
+		duk_push_lstring(ctx, p_start_key, (duk_size_t) (p_end_key - p_start_key));
+		duk_get_prop(ctx, index);  /* [ ... key ] -> [ ... val ] */
+
+		c = *p++;
+		switch ((int) c) {
+		case DUK_ASC_LC_D: {
+			/* FIXME */
+			duk_int_t *out_v;
+			out_v = va_arg(ap, duk_int_t *);
+			if (!out_v) {
+				goto type_error;
+			}
+			*out_v = duk_to_int(ctx, -1);
+			break;
+		}
+		default: {
+			goto type_error;
+		}
+		}
+
+		duk_pop(ctx);
+	}
+	va_end(ap);
+	return;
+
+ type_error:
+	DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, "FIXME: arg/format error");
 }
 
 #undef DUK__CHECK_SPACE
