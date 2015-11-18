@@ -2,6 +2,8 @@
 JSON built-in
 =============
 
+FIXME: add fast path notes
+
 This document describes the Duktape ``JSON`` built-in implementation which
 provides:
 
@@ -85,6 +87,8 @@ call Str() and only then decide whether to serialize the property at all (so
 that key and colon are only emitted if the Str(value) call does not return
 undefined).  Side effects prevent a two-pass "dry run" approach.
 
+FIXME: FIX DESCRIPTION
+
 This problem is now avoided by splitting Str() into two separate algorithms.
 The first algorithm performs all the conversions and coercions, and causes
 all side effects to take place, and then indicates whether the final result
@@ -112,6 +116,8 @@ is popped.  Note that:
 
 * The maximum stack depth matches object recursion depth.  Even for very
   large JSON documents the maximum stack depth is not necessarily very high.
+
+FIXME: FIX description
 
 The current implementation uses a tracking object instead of a stack.  The
 keys of the tracking object are heap pointers formatted with sprintf()
