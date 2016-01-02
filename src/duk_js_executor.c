@@ -2094,6 +2094,7 @@ DUK_INTERNAL void duk_js_execute_bytecode(duk_hthread *exec_thr) {
 		}
 #if defined(DUK_USE_CPP_EXCEPTIONS)
 		catch (std::exception &exc) {
+			/* FIXME: avoid duplication? */
 			const char *what = exc.what();
 			if (!what) {
 				what = "unknown";

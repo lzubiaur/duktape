@@ -1111,6 +1111,7 @@ DUK_INTERNAL duk_int_t duk_handle_call_protected(duk_hthread *thr,
 	}
 #if defined(DUK_USE_CPP_EXCEPTIONS)
 	catch (std::exception &exc) {
+		/* FIXME: avoid duplication? */
 		const char *what = exc.what();
 		if (!what) {
 			what = "unknown";
@@ -2011,6 +2012,7 @@ DUK_INTERNAL duk_int_t duk_handle_safe_call(duk_hthread *thr,
 	}
 #if defined(DUK_USE_CPP_EXCEPTIONS)
 	catch (std::exception &exc) {
+		/* FIXME: avoid duplication? */
 		const char *what = exc.what();
 		if (!what) {
 			what = "unknown";
